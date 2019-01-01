@@ -1,4 +1,5 @@
 # Makes a vector of paths to all .ab1 files in the sub-directories
+library(stringr)
 dirs <- list.files(pattern = ".ab1$", recursive = TRUE)
 dir.create("./Results")
 wd_dirs <- list.dirs(recursive = FALSE)
@@ -12,7 +13,7 @@ for (i in 1:13) {
 
 x <- 1
 o <- 0
-for (a in 1:51){
+for (a in 1:(length(dirs)/4)){
   system(paste("./tracy assemble", dirs[x], dirs[x+1], dirs[x+2], dirs[x+3]))
   system("gzip -d al.fa.gz")
   filename <- paste0(strsplit(dirs[x], "/")[[1]][1], "_", strsplit(dirs[x], "/")[[1]][2])
@@ -20,9 +21,11 @@ for (a in 1:51){
   file.copy(paste0(filename, ".fasta"), paste0("./Results/", strsplit(dirs[x], "/")[[1]][1], "/"))
   system("rm *.fa *.fasta")
   o <- o+1
-  if (o == 5){
+  counter <- (sum(str_count(dirs, pattern = paste(strsplit(dirs[x], "/")[[1]][1]))))/4
+  if (o == counter){
     system(paste0("(cd ./Results/", strsplit(dirs[x], "/")[[1]][1], "; ", "for x in *.fasta; do cat $x; echo; done > combined.fa)"))
     system(paste0("(cd ./Results/", strsplit(dirs[x], "/")[[1]][1], "; ", "mafft --adjustdirection combined.fa > aligned_contigs.fa)"))
+    system(paste0("(cd ./Results/", strsplit(dirs[x], "/")[[1]][1], "; ", "echo pdf | prettyplot aligned_contigs.fa -ratio=0.59 -docolour)"))
     o <- 0
     }
   x <- x+4
