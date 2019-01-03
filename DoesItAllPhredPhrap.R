@@ -23,7 +23,17 @@ for (y in subdirs){
   system(sprintf("phred -id %s -sa seqs.fasta -qa seqs_fasta.qual", y))
   system("phrap seqs.fasta > phrap.out")
   contigs <- readFasta("seqs.fasta.contigs")
+  contigs$Header[which.max(nchar(contigs$Sequence))] <- paste0(strsplit(y, "/")[[1]][1], "_", strsplit(y, "/")[[1]][2])
   writeFasta(contigs[which.max(nchar(contigs$Sequence)),], "newfasta.fasta", width = 80)
   system(paste0("cp newfasta.fasta Results/", strsplit(y, "/")[[1]][1], "/", strsplit(y, "/")[[1]][1], "_", strsplit(y, "/")[[1]][2], ".fasta"))
+}
+
+resdir <- c()
+for (i in 1:13) {
+  dirname <- strsplit(wd_dirs[i], "/")[[1]][2]
+  resdir[i] <- paste0("./Results/", dirname)
+  system(paste0("(cd", " ", resdir[i], "/", ";", " ", "cat *.fasta > combined.fa)"))
+  system(paste0("(cd", " ", resdir[i], "/", ";", " ", "mafft --adjustdirection --auto combined.fa > aligned_contigs.fa)"))
+  system(paste0("(cd", " ", resdir[i], "/", ";", " ", "echo pdf | prettyplot aligned_contigs.fa -ratio=0.59 -docolour)"))
 }
 
